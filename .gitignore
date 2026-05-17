@@ -1,0 +1,24 @@
+# Credentials — never commit
+.ecoflow_creds
+*.creds
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+
+# Captures / logs — may contain serial numbers, user IDs, tokens
+captures/
+*.capture.log
+ecoflow_capture_*.log
+ecoflow_get_reply_*.json
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
