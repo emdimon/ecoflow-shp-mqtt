@@ -163,7 +163,7 @@ boundary against bit positions across multiple captured payloads.
 With remote schedule control, an HA-side optimiser can now:
 
 1. Read tomorrow's solar forecast (e.g. Solcast HACS integration).
-2. Read the last N days of household demand from HA history.
+2. Read the last N days of household demand history.
 3. Read the current battery SOC.
 4. Compute the optimal charging rate that fills the batteries to the
    target SOC during the cheap-rate window, no more, no less.
@@ -174,3 +174,35 @@ The author runs this as a `launchd` job at 00:05 daily on macOS. The
 schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
+
+### Two refinements worth borrowing
+
+Two things the author ended up doing in the reference optimiser that
+the library itself doesn't need to know about, but which materially
+improved nightly outcomes — pattern-level lessons others might want
+to copy:
+
+1. **Persistent demand history.** Home Assistant's recorder defaults
+   to a 10-day window and the `total_increasing` extraction can
+   silently return no usable rows depending on how the source sensor
+   reports state. The author's optimiser originally fell back to a
+   hardcoded `14 kWh/day` assumption — which turned out to be ~30 %
+   below actual demand and consistently undersized the nightly
+   charge. The fix was a tiny SQLite collector that writes one row
+   per night (`date, grid_import_kwh, battery_out_kwh, solar_kwh,
+   ...`) and an optimiser that reads from that DB first, falling
+   back to the HA path only if the DB is missing. Once 10+ nights of
+   real data accumulated the planning got noticeably more accurate.
+
+2. **Multiplicative demand contingency.** The historical baseline is
+   a *mean*. Half of nights, by definition, exceed the mean. A
+   simple `daily_demand *= 1.15` after computing the baseline covers
+   most of those above-average nights without significantly
+   over-charging on the typical ones. On the author's data, 15 %
+   covered ~65 % of nights; 20 % covered ~83 %. Beyond that the long
+   tail (occasional 28–30 kWh days) isn't worth buffering for — the
+   ratio of cheap-rate overcharge to expensive-rate undercharge
+   gets unfavourable.
+
+Both of those land entirely in the optimiser's own code; the library
+just gets a `chChargeWatt` value to publish.

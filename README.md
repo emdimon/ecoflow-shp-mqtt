@@ -1,7 +1,12 @@
 # ecoflow-shp-mqtt
 
+[![Release](https://img.shields.io/github/v/tag/emdimon/ecoflow-shp-mqtt?label=release&sort=semver)](https://github.com/emdimon/ecoflow-shp-mqtt/releases)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
 Remote control of the EcoFlow Smart Home Panel (gen 1, **SP10**) charging schedule
 via the EcoFlow private MQTT API. Reverse-engineered, plain JSON, no protobuf.
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 If you own an SHP + Delta Pro setup and you've tried to automate the daily
 charging rate from Home Assistant or anywhere else outside the EcoFlow mobile
