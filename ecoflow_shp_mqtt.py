@@ -33,7 +33,7 @@ from typing import Iterable, Optional
 import requests
 import paho.mqtt.client as mqtt
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 
 # ─────────────────────────────────────────────────────────────

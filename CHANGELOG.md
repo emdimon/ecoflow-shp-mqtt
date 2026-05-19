@@ -7,6 +7,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.2] — 2026-05-19
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Changed
+- `docs/DISCOVERY.md`: closing "What this opens up" section now lists
+  **three** pattern-level refinements borrowed back from the reference
+  optimiser, adding **self-calibrating Solcast confidence**. The
+  optimiser now reads recent `(forecast, actual)` pairs from its
+  SQLite history and uses the rolling-21-day median as its solar
+  multiplier, replacing a hardcoded 0.85 default. On the author's site
+  this dropped the multiplier to ~0.46 — Solcast forecasts roughly
+  2× the actual delivered solar (pergola shading the model doesn't
+  see).
+
 ## [0.1.1] — 2026-05-19
 
 Documentation-only patch — no library API or behaviour changes.
@@ -45,6 +60,7 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/emdimon/ecoflow-shp-mqtt/releases/tag/v0.1.0

@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Two refinements worth borrowing
+### Three refinements worth borrowing
 
-Two things the author ended up doing in the reference optimiser that
+Three things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -204,5 +204,18 @@ to copy:
    ratio of cheap-rate overcharge to expensive-rate undercharge
    gets unfavourable.
 
-Both of those land entirely in the optimiser's own code; the library
-just gets a `chChargeWatt` value to publish.
+3. **Self-calibrating Solcast confidence.** Solcast forecasts a site's
+   theoretical generation under perfect alignment, but the real-world
+   ratio of (actual ÷ forecast) is heavily site-dependent — shading,
+   minor azimuth/tilt mis-configuration, soiling, inverter clipping.
+   The author's pergola turned out to deliver only ~46 % of forecast
+   on the median day (24 days, IQR ~0.40–0.55), which is a long way
+   from the hardcoded 0.85 the optimiser was using. After 5+ days of
+   real `(forecast, actual)` pairs accumulate in the SQLite store,
+   the optimiser reads them and uses the rolling median over the
+   last 21 days as its Solcast multiplier; falls back to the
+   hardcoded default only while the sample is too thin. The clamp
+   `[0.30, 1.10]` keeps a single bad day from skewing the multiplier.
+
+All three refinements land entirely in the optimiser's own code; the
+library just gets a `chChargeWatt` value to publish.
