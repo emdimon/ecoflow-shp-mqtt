@@ -7,6 +7,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.3] — 2026-05-27
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Changed
+- `docs/DISCOVERY.md`: now lists **four** pattern-level refinements
+  borrowed back from the reference optimiser, adding **respect the
+  EcoFlow account quota**.
+  - The EcoFlow API has an undocumented per-account daily quota.
+    Around ~150 daily requests the broker starts silently dropping
+    `set_reply` messages even when publishes succeed at the `paho rc=0`
+    level. The optimiser now reads the live `quota_requests` counter
+    from HA's `sensor.smart_home_panel_*_status` attribute and
+    short-circuits the publish if the counter exceeds a block
+    threshold (default 150).
+  - When publishing, prefer **one long-timeout attempt** (30 s) over
+    many short attempts — both burn quota per attempt, but the long
+    attempt is gentler on the broker and more likely to actually
+    catch the ack on a slow night.
+
 ## [0.1.2] — 2026-05-19
 
 Documentation-only patch — no library API or behaviour changes.
@@ -60,7 +80,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/emdimon/ecoflow-shp-mqtt/releases/tag/v0.1.0

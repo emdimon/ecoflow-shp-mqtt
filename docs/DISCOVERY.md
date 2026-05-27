@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Three refinements worth borrowing
+### Four refinements worth borrowing
 
-Three things the author ended up doing in the reference optimiser that
+Four things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -217,5 +217,25 @@ to copy:
    hardcoded default only while the sample is too thin. The clamp
    `[0.30, 1.10]` keeps a single bad day from skewing the multiplier.
 
-All three refinements land entirely in the optimiser's own code; the
+4. **Respect the EcoFlow account quota.** EcoFlow runs a per-account
+   daily request quota on its private API. The limit is undocumented;
+   empirically on the author's account, things start to break around
+   ~150 daily requests — publishes still succeed at the paho/`rc=0`
+   level (the broker accepts them), but the SHP either doesn't process
+   them or its `set_reply` messages are silently dropped before reaching
+   you. The optimiser now reads the live counter from HA's
+   `sensor.smart_home_panel_*_status` (attribute: `quota_requests`)
+   before publishing. Above a `BLOCK` threshold (default 150) it skips
+   the MQTT write entirely, going straight to the manual-fallback
+   notification — this preserves the remaining quota for diagnostics
+   and avoids waiting through long timeouts that will never resolve.
+   Above a `WARN` threshold (default 100) it still publishes but flags
+   the notification so the user knows further writes that day are at
+   risk. Quota resets at EcoFlow's UTC midnight. Related: when you
+   *do* publish, prefer **one attempt with a long timeout** (e.g.
+   30 s) over **many short attempts** — both burn quota per attempt,
+   but the single long attempt is gentler on the broker and more
+   likely to actually receive the ack on a slow night.
+
+All four refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.
