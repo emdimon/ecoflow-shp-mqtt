@@ -7,6 +7,33 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.4] — 2026-05-30
+
+Documentation-only patch — **corrects v0.1.3's quota-guard hypothesis**.
+
+### Changed
+- `docs/DISCOVERY.md`: rewrites refinement #4 ("Respect the EcoFlow
+  account quota"). The v0.1.3 hypothesis — that
+  `sensor.smart_home_panel_*_status.quota_requests` is a per-day
+  counter and that publishing should be blocked above a threshold —
+  has been **empirically disproved**.
+  - `quota_requests` is **not a daily counter**: it grows
+    monotonically across the HA integration's lifetime
+    (178 → 401 over four days, no daily reset).
+  - Anyone implementing the v0.1.3 guard found their threshold
+    permanently tripped after a few days, skipping every scheduled
+    publish.
+  - Real broker behaviour: **sliding-window per-cert-account rate
+    limit on publish frequency** (a few minutes window;
+    single-publish-per-day is fine; bursts of 5+ in 10 min trigger
+    silent `set_reply` drops even though publishes succeed at
+    `paho rc=0`).
+  - Replacement guidance: publish once per cron tick, single attempt
+    with a long timeout (~30 s, no retry); don't burst.
+- The reference optimiser still surfaces `quota_requests` in its
+  diagnostic notification line for visibility but no longer gates
+  publishing on it.
+
 ## [0.1.3] — 2026-05-27
 
 Documentation-only patch — no library API or behaviour changes.
@@ -80,7 +107,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.0...v0.1.1
