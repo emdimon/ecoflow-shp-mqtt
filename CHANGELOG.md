@@ -7,6 +7,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.6] — 2026-05-31
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `docs/DISCOVERY.md`: fifth pattern-level refinement — **verify via
+  `ac_in_power` telemetry, not via `set_reply` alone**.
+  - Since `set_reply` is unreliable (see refinement #4), the
+    reference optimiser now takes a second swing at confirmation by
+    reading the Delta Pros' `ac_in_power` HA sensors 90 s after
+    publishing. If both units' readings are within ±75 W of the
+    published `chChargeWatt`, that's physical evidence the schedule
+    was applied — independent of any MQTT ack arriving.
+  - Used to promote `unconfirmed` → `confirmed` in the three-state
+    classification introduced in v0.1.5.
+  - Only runs during the charging window (when AC input is active);
+    outside the window it's `skipped` rather than a false negative.
+  - Cheaper than a chained `/get` round-trip and reuses telemetry
+    we're already collecting.
+
 ## [0.1.5] — 2026-05-31
 
 Documentation-only patch — **corrects v0.1.4's rate-limit hypothesis with
@@ -136,7 +156,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...v0.1.3

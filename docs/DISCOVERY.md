@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Four refinements worth borrowing
+### Five refinements worth borrowing
 
-Four things the author ended up doing in the reference optimiser that
+Five things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -252,5 +252,20 @@ to copy:
      publishing. The reference optimiser still surfaces it in its
      notification as a diagnostic data point only.
 
-All four refinements land entirely in the optimiser's own code; the
+5. **Verify via `ac_in_power` telemetry, not via `set_reply` alone.**
+   Given the broker's unreliable `set_reply` (refinement #4), an
+   "unconfirmed" status by itself is uncomfortable — we believe the
+   publish worked but have no proof. The reference optimiser now
+   takes a second swing at confirmation by reading the Delta Pros'
+   `ac_in_power` HA sensors 90 seconds after publishing. If the
+   reading is within ±75 W of `chChargeWatt` on both units, we have
+   *physical* evidence the SHP applied the schedule — and that
+   evidence is independent of any MQTT ack arriving. The optimiser
+   uses this to promote an `unconfirmed` status to `confirmed`. The
+   verification only runs during the charging window (when AC input
+   is active); outside it, the result is `skipped` rather than a
+   false negative. This pattern is also cheaper than a chained
+   `/get` round-trip and uses telemetry we're already collecting.
+
+All five refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.
