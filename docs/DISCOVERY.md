@@ -217,25 +217,40 @@ to copy:
    hardcoded default only while the sample is too thin. The clamp
    `[0.30, 1.10]` keeps a single bad day from skewing the multiplier.
 
-4. **Don't burst your publishes — the broker has an invisible sliding
-   rate-limit.** Originally documented (v0.1.3) as a "daily quota
-   counter" reading off `sensor.smart_home_panel_*_status.quota_requests`,
-   that hypothesis turned out to be wrong: `quota_requests` is the HA
-   integration's own request counter and grows monotonically across
-   the integration's lifetime (e.g. 178 → 401 over four days on the
-   author's account, with no daily reset). Empirically what actually
-   happens is that the EcoFlow MQTT broker silently drops `set_reply`
-   messages when the *same cert account* has made several publishes
-   within some short window (estimated single-digit minutes). One
-   publish per day from a scheduled job: no issue. A debugging burst
-   of 5+ publishes in 10 minutes: the next several `set_reply` acks
-   never arrive even though the publishes themselves succeed at
-   `paho rc=0`. So the operational advice is "**publish once per cron
-   tick, spaced out across the day, with a single long-timeout
-   attempt**" (e.g. 30 s, no retry) — not "many short retries". The
-   reference optimiser still prints `quota_requests` in its
-   diagnostic output for visibility but no longer gates publishing on
-   it.
+4. **Treat a missing `set_reply` as "unconfirmed," not "failed."**
+   This refinement has now been corrected twice; v0.1.3 wrongly
+   blamed a daily quota counter, v0.1.4 wrongly blamed a
+   sliding-window rate limit. The actually-empirical truth (verified
+   2026-05-31) is simpler and more important: **the publish itself
+   is reliable, but the `set_reply` ack is not.**
+   - On the night of 2026-05-30 the reference optimiser published
+     `chChargeWatt = 300` via MQTT. `paho rc = 0`, no `set_reply`
+     within 30 s, optimiser logged "FAILED" and sent the
+     "set 300 W/unit manually" notification.
+   - Next morning the owner opened the EcoFlow app and the schedule
+     was already showing 300 W. The publish had been applied. The
+     ack just never came back.
+   - The May 27 "burst failures" that motivated v0.1.4's rate-limit
+     framing were almost certainly the same phenomenon — successful
+     publishes with dropped acks, mis-classified as failures.
+   So the operational guidance is:
+   - **Don't equate "no `set_reply`" with "write failed."** Treat
+     it as a third state: *publish accepted by broker, ack missing,
+     SHP almost certainly applied it.* The reference optimiser now
+     reports `confirmed` / `unconfirmed` / `failed` based on `paho.rc`
+     and `set_reply` arrival; only the `failed` state (paho rejected
+     at the broker layer) triggers the HA fallback and a
+     "set manually" notification.
+   - **Still publish gently.** One attempt per scheduled run,
+     30-second timeout, no retry. Bursts of publishes still
+     correlate with dropped acks empirically, even if they don't
+     prevent the writes themselves from being applied — so no point
+     spamming the broker.
+   - **`quota_requests` on the SHP status sensor is a monotonic
+     lifetime counter** from the HA integration's polling; it is not
+     a daily quota, has no reset, and should not be used to gate
+     publishing. The reference optimiser still surfaces it in its
+     notification as a diagnostic data point only.
 
 All four refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.

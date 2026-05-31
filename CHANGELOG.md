@@ -7,6 +7,35 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.5] — 2026-05-31
+
+Documentation-only patch — **corrects v0.1.4's rate-limit hypothesis with
+direct empirical evidence**.
+
+### Changed
+- `docs/DISCOVERY.md`: refinement #4 rewritten again (third time's the
+  charm, we hope). The v0.1.4 framing — "broker has a sliding-window
+  rate limit; bursts of publishes cause silent `set_reply` drops" —
+  conflated two separate phenomena.
+  - Direct evidence (2026-05-31): the reference optimiser published
+    `chChargeWatt = 300` the previous night, reported "FAILED" because
+    no `set_reply` arrived, sent the "set manually" notification — and
+    the SHP had in fact applied the schedule. Confirmed visually in
+    the EcoFlow app the next morning at 300 W.
+  - So: **the publish is reliable; the ack is not.** The May 27 burst
+    "failures" that motivated v0.1.4's narrative were almost certainly
+    the same phenomenon — successful publishes mis-classified.
+  - New guidance: treat a missing `set_reply` as **`unconfirmed`**
+    (probably succeeded), not `failed`. Only paho-layer rejection
+    (`rc != 0`) is a real failure. The reference optimiser now reports
+    three states (`confirmed` / `unconfirmed` / `failed`) and only the
+    real-failed state triggers the HA fallback or a "set manually"
+    notification.
+  - "Don't burst your publishes" is still good advice — burst publishes
+    correlate with dropped acks empirically — but no longer the headline.
+- `quota_requests` is restated as a monotonic lifetime counter, not a
+  quota indicator; surfaced only as a diagnostic.
+
 ## [0.1.4] — 2026-05-30
 
 Documentation-only patch — **corrects v0.1.3's quota-guard hypothesis**.
@@ -107,7 +136,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.1...v0.1.2
