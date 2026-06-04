@@ -7,6 +7,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.7] — 2026-06-04
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `README.md`: a short **Troubleshooting** section covering two
+  failure modes seen in the wild:
+  - The `certifi` half-install (`Could not find a suitable TLS CA
+    certificate bundle, invalid path: …/certifi/cacert.pem`) — the
+    package directory survives an environment prune but `cacert.pem`
+    gets removed; fix is `pip install --force-reinstall --no-deps certifi`.
+    From a scheduled job this manifests as a complete failure at the
+    `requests.post(.../auth/login)` step — no MQTT traffic at all.
+  - A reminder that missing `set_reply` is `unconfirmed`, not `failed`,
+    cross-linking to the existing refinements #4 and #5.
+
 ## [0.1.6] — 2026-05-31
 
 Documentation-only patch — no library API or behaviour changes.
@@ -156,7 +172,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.3...v0.1.4

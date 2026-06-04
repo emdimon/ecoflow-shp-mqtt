@@ -160,6 +160,28 @@ Go bindings but still doesn't expose schedule writes) is in
   and prefer `examples/set_schedule.py` (which only touches fields it
   has been told to) over building raw payloads.
 
+## Troubleshooting
+
+**`Could not find a suitable TLS CA certificate bundle, invalid path: …/certifi/cacert.pem`**
+The `certifi` package is half-installed in your venv — the package directory
+exists but `cacert.pem` is missing. Seen in the wild when an environment
+update prunes the bundle but leaves the package metadata. Fix:
+
+```sh
+/path/to/your/venv/bin/pip install --force-reinstall --no-deps certifi
+```
+
+If you're seeing this from a scheduled job (cron / launchd), the script
+will fail at the `requests.post(.../auth/login)` step before any MQTT
+publish is attempted; you'll see no traffic on the broker at all.
+
+**`set_reply` never arrives, but the EcoFlow app still shows the new schedule**
+This is normal — the broker's `set_reply` ack is unreliable. The publish
+itself is not. See [DISCOVERY.md refinement #4](docs/DISCOVERY.md) for the
+full story. Treat missing `set_reply` as `unconfirmed`, not `failed`, and
+verify via `ac_in_power` telemetry during the charging window if you need
+positive confirmation (DISCOVERY.md refinement #5).
+
 ## Licence
 
 [MIT](LICENSE) — do whatever you want, no warranty.
