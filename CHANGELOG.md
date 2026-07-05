@@ -7,6 +7,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.9] — 2026-07-05
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `docs/DISCOVERY.md`: seventh pattern-level refinement — **close the
+  feedback loop by logging every plan and diffing it against reality**.
+  - The reference optimiser now writes a row to a `daily_plans` SQLite
+    table on every nightly run (planned rate, cap, expected demand,
+    expected solar, expected charge needed, MQTT status, full result
+    blob).
+  - A standalone `plan_vs_actual.py` analysis script joins
+    `daily_plans` LEFT JOIN `daily_energy ON date` and reports demand,
+    solar, and charge error stats.
+  - Grounds every future tuning decision in empirical error rather
+    than intuition. Explicitly framed as the antidote to the
+    "wrong-hypothesis shipped three times" pattern seen in
+    v0.1.3 → v0.1.4 → v0.1.5.
+
 ## [0.1.8] — 2026-07-05
 
 Documentation-only patch — no library API or behaviour changes.
@@ -197,7 +216,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...v0.1.6

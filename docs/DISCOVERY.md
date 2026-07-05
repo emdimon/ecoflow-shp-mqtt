@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Six refinements worth borrowing
+### Seven refinements worth borrowing
 
-Six things the author ended up doing in the reference optimiser that
+Seven things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -287,5 +287,28 @@ to copy:
    `grid_export` in your meter data — that's a signal you're
    giving away kWh at midday and paying for it back at night.
 
-All six refinements land entirely in the optimiser's own code; the
+7. **Close the feedback loop — log every plan and diff it against
+   reality.** An optimiser that publishes a nightly plan but never
+   records what it *decided* has no way to answer the most important
+   question: **was I right?** The author's optimiser initially wrote
+   each run's full result to a JSON file that got overwritten the
+   next night — so any tuning was blind. The fix (v0.1.9): a
+   `daily_plans` SQLite table alongside `daily_energy`, with a row
+   per night containing the planned rate, cap, expected demand,
+   expected solar, expected charge needed, MQTT status, and the full
+   result blob. A standalone script joins `daily_plans` LEFT JOIN
+   `daily_energy ON date` and reports:
+   - Demand prediction error (mean signed, mean absolute, over- vs
+     under-planned count)
+   - Solar prediction error (actual/planned ratio — signals whether
+     the calibration multiplier is systematically off)
+   - Charge outcome (AC-in kWh vs planned charge-needed)
+   - MQTT / verification status distribution across the sample
+   This grounds every future tuning decision (contingency %, window
+   size, capacity assumption, etc.) in empirical error rather than
+   intuition. **Skipping this step is how you end up shipping the
+   same wrong-hypothesis pattern three times in a row** (see
+   v0.1.3 → v0.1.4 → v0.1.5).
+
+All seven refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.
