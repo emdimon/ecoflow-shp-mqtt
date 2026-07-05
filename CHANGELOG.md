@@ -7,6 +7,31 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.8] — 2026-07-05
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `docs/DISCOVERY.md`: sixth pattern-level refinement — **measure ALL
+  Delta Pros' solar inputs, not just one**.
+  - In parallel-DP setups where a single PV array feeds both units,
+    each unit exposes its own `solar_in_energy` sensor. Tracking only
+    one DP's under-counts real solar (roughly 45 % on the author's
+    site) and biases downstream calibration.
+  - Symptom that flags this: **any time your derived battery
+    efficiency ratio exceeds 100 %**, you have missing energy sources
+    on the input side.
+  - Fix: `total_battery_in = ac_in_dp1 + ac_in_dp2 + solar_in_dp1 +
+    solar_in_dp2` (or equivalent), and calibrate solar against the
+    sum of *all* DPs' `solar_in`.
+  - Related sanity check discussed: if you have a second solar system
+    (main rooftop) that isn't feeding the DPs, look for it in your
+    `grid_export` meter — that's kWh you're giving away by day and
+    paying for at night.
+- Notes on demand-contingency tuning after 69 days of data (in the
+  reference optimiser only; not a library concern): bumped from 15 %
+  to 20 % as coverage of >-baseline nights improved from 77 % → 87 %.
+
 ## [0.1.7] — 2026-06-04
 
 Documentation-only patch — no library API or behaviour changes.
@@ -172,7 +197,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.4...v0.1.5

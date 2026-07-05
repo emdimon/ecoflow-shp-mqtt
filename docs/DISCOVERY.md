@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Five refinements worth borrowing
+### Six refinements worth borrowing
 
-Five things the author ended up doing in the reference optimiser that
+Six things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -267,5 +267,25 @@ to copy:
    false negative. This pattern is also cheaper than a chained
    `/get` round-trip and uses telemetry we're already collecting.
 
-All five refinements land entirely in the optimiser's own code; the
+6. **Measure ALL Delta Pros' solar inputs, not just one.** In a parallel
+   Delta Pro setup where a single PV array (a "pergola" in the author's
+   case) feeds both units, each unit exposes its own `solar_in_energy`
+   sensor. The author's collector originally tracked only DP1's — half
+   the picture. This under-counted actual solar by roughly 45 % on this
+   site, biased the calibration ratio down (0.44 median observed vs an
+   estimated true ~0.85 once DP2 is included), and made the "battery
+   round-trip efficiency" number pop out at a physically impossible
+   176 % because the denominator (AC input) was missing the DC input
+   from solar. Once the collector is instrumented properly:
+   `total_battery_in = ac_in_dp1 + ac_in_dp2 + solar_in_dp1 + solar_in_dp2`
+   gives a sensible efficiency (~80–90 %), and the calibration ratio
+   drifts up to reality. Related sanity check: **any time your derived
+   efficiency ratio exceeds 100 %, you have missing energy sources on
+   the input side.** Don't just clip the number — go find them. Also:
+   if you happen to have a second solar system (main-house rooftop
+   array) that's *not* feeding the DPs, check whether it shows up as
+   `grid_export` in your meter data — that's a signal you're
+   giving away kWh at midday and paying for it back at night.
+
+All six refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.
