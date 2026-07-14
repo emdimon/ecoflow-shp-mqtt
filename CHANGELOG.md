@@ -7,6 +7,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.10] — 2026-08-13
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Notes
+- Reference optimiser's `BATTERY_CAPACITY_KWH` constant bumped 10.0 → 12.0
+  after the author added a 6th battery unit to the fleet (2 base + 4 extras
+  = 21.6 kWh nameplate). Reflects a real hardware change; empirical
+  calibration of the new number will happen via `plan_vs_actual.py` over
+  2–3 weeks post-install.
+- No library changes; this note exists to time-stamp the hardware-change
+  pattern (bump a conservative provisional capacity number, then refine
+  empirically) that's already documented as refinement #7 in
+  `docs/DISCOVERY.md`.
+
 ## [0.1.9] — 2026-07-05
 
 Documentation-only patch — no library API or behaviour changes.
@@ -216,7 +231,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.6...v0.1.7
