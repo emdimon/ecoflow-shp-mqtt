@@ -7,6 +7,29 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.11] — 2026-07-23
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `docs/DISCOVERY.md`: eighth pattern-level refinement — **separate
+  consumed solar from exported solar**.
+  - Not every solar-tagged sensor offsets home demand. A dedicated
+    grid-EXPORT array on a FIT / feed-in tariff is *sold*, not
+    consumed, and must be excluded from the optimiser's "usable
+    solar" figure.
+  - The author's setup: a Shelly EM channel that looked like 62 % of
+    total daily solar was actually a ~5 kW export-only array paid at
+    12 p/kWh. Counting it would have made the optimiser skip charging
+    on the false belief that solar would cover everything.
+  - Fix: collector now tracks `total_usable_solar` (pergola +
+    microinverter) separately from `fit_export` (income only); the
+    optimiser calibrates against usable solar alone.
+  - Also captured: the STREAM microinverter (small, self-powered,
+    goes offline at dusk) IS usable and is now included; and a note
+    that the DP1+DP2 pergola calibration ratio has settled at ~0.72
+    (up from the mis-counted 0.44) since the v0.1.8 correction.
+
 ## [0.1.10] — 2026-08-13
 
 Documentation-only patch — no library API or behaviour changes.
@@ -231,7 +254,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.7...v0.1.8

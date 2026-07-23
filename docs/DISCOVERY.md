@@ -175,9 +175,9 @@ schedule for the night that *just* started gets updated within seconds
 of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Seven refinements worth borrowing
+### Eight refinements worth borrowing
 
-Seven things the author ended up doing in the reference optimiser that
+Eight things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -310,5 +310,26 @@ to copy:
    same wrong-hypothesis pattern three times in a row** (see
    v0.1.3 → v0.1.4 → v0.1.5).
 
-All seven refinements land entirely in the optimiser's own code; the
+8. **Not all "solar" offsets your demand — separate consumed from
+   exported.** When adding up "how much solar do I have," it's tempting
+   to sum every solar-tagged sensor in Home Assistant. That's wrong if
+   any array is a **dedicated grid-export circuit** on a feed-in / FIT
+   tariff — that energy is *sold*, never consumed by the house, so it
+   must not enter the "usable solar that offsets tonight's demand"
+   figure. The author's HA Energy dashboard listed four solar sources
+   (two battery-fed pergola strings, a small self-powered
+   microinverter, and a Shelly EM channel). The Shelly channel turned
+   out to be a ~5 kW export-only array paid at 12 p/kWh — 62 % of the
+   day's total "solar" but zero self-consumption. Counting it would
+   have told the optimiser "you'll have 26 kWh of solar tomorrow, don't
+   charge," when the house-usable figure was ~10 kWh. The fix: split
+   the collector's solar accounting into `total_usable_solar` (pergola
+   + microinverter — offsets demand) and `fit_export` (sold to grid —
+   tracked only for income reporting), and calibrate the optimiser
+   against the usable figure alone. Rule of thumb: **for every solar
+   sensor, ask "does this kWh reduce my grid import, or earn me an
+   export payment?" — only the former belongs in the charging
+   calculation.**
+
+All eight refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.
