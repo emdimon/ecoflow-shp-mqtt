@@ -7,6 +7,28 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.13] — 2026-09-05
+
+Documentation-only patch — **corrects a number in v0.1.12's refinement #9**.
+
+### Changed
+- `docs/DISCOVERY.md`: the discharge-side coefficient was derived wrongly
+  a few hours earlier. Daytime solar into the batteries was credited at
+  the *discharge* rate (subtracting its kWh from kWh delivered) instead of
+  at the cell rate (adding the points it put back to the points drawn).
+  That understates the coefficient by ~20 % and overstates the losses.
+  - Was: ~6.9 kWh AC per 100 SoC points per string, ≈57 % AC round-trip.
+  - Is:  **~8.6 kWh AC per 100 points per string** (7.2–9.2, n = 7),
+    ≈0.80 × nameplate, **≈70 % AC round-trip**.
+  - Sanity check that caught it: a day that started at 60 % and ran to
+    the floor delivered 9.4 kWh; the wrong coefficient said only 8.5 kWh
+    was available.
+  - The charge-side figure (12.2 kWh per 100 points per string) is
+    unaffected — there is no solar in the 00:00–07:00 window.
+  - Corollary for the "keep two coefficients" guidance: the DC-input
+    coefficient is a *third* rate (nameplate kWh per point), and it is
+    the one to use when solar lands in the pack during the day.
+
 ## [0.1.12] — 2026-09-05
 
 Documentation-only patch — no library API or behaviour changes.
@@ -285,7 +307,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.12...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...v0.1.10

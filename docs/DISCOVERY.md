@@ -348,9 +348,14 @@ to copy:
    strings, each with two extra batteries):
    - **charging: 12.2 kWh AC per 100 SoC points per string** (n = 16
      nights, spread 9.8–14.9) — about nameplate ÷ 0.88;
-   - **discharging: ~6.9 kWh AC per 100 points per string** (n = 7 days)
-     — inverter losses plus ~45 W of standby per unit, 24 h/day, folded
-     in. The AC round-trip works out near 57 %.
+   - **discharging: ~8.6 kWh AC per 100 points per string** (n = 7 days,
+     7.2–9.2) — inverter losses plus ~45 W of standby per unit, 24 h/day,
+     folded in; about 0.80 × nameplate. AC round-trip ≈ 70 %.
+     (v0.1.12 printed 6.9 and 57 %: it credited daytime solar input at
+     the *discharge* rate instead of the cell rate, which inflates the
+     apparent losses. Credit DC input at nameplate kWh-per-point — i.e.
+     add the points it put back to the points drawn, don't subtract its
+     kWh from the kWh delivered.)
    Those are different numbers on the two sides of the inverter.
    Practical guidance:
    - Keep two coefficients — grid-kWh-in per point and delivered-kWh-out
