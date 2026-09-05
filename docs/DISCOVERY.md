@@ -170,14 +170,17 @@ With remote schedule control, an HA-side optimiser can now:
 5. Publish that rate (+ cap) to the SHP via this library.
 6. Repeat nightly.
 
-The author runs this as a `launchd` job at 00:05 daily on macOS. The
-schedule for the night that *just* started gets updated within seconds
-of the cheap-rate window opening; the SHP picks up the new rate
+The author ran this as a `launchd` job at 00:05 daily on macOS until
+August 2026, then moved it to an AppDaemon app on the Home Assistant
+host (a Mac with FileVault and no auto-login never fires user
+LaunchAgents after a reboot — it sits at the unlock screen). Either way
+the schedule for the night that *just* started gets updated within
+seconds of the cheap-rate window opening; the SHP picks up the new rate
 mid-window seamlessly.
 
-### Eight refinements worth borrowing
+### Nine refinements worth borrowing
 
-Eight things the author ended up doing in the reference optimiser that
+Nine things the author ended up doing in the reference optimiser that
 the library itself doesn't need to know about, but which materially
 improved nightly outcomes — pattern-level lessons others might want
 to copy:
@@ -331,5 +334,42 @@ to copy:
    export payment?" — only the former belongs in the charging
    calculation.**
 
-All eight refinements land entirely in the optimiser's own code; the
+9. **`hightBattery` is only a cap — `chChargeWatt × hours` decides where
+   the pack actually ends up. Size it from a *measured* kWh-per-SoC-point,
+   and record the SoC at the end of the window to prove you got there.**
+   The reference optimiser turned "kWh to add" into a per-unit wattage
+   using a single `BATTERY_CAPACITY_KWH` guess (12 kWh, for a pack whose
+   nameplate had grown to 21.6 kWh). Because the same constant also
+   clamped the target, every plan for a month read "90 %, 500 W/unit" and
+   looked healthy. Ten days of HA history said otherwise: the pack sat at
+   40–67 % at 07:00 every night and never once touched 90 %. The *rate*,
+   not the cap, was the binding constraint, and it had been sized against
+   a number that was wrong by 2×. Measured on this site (two Delta Pro
+   strings, each with two extra batteries):
+   - **charging: 12.2 kWh AC per 100 SoC points per string** (n = 16
+     nights, spread 9.8–14.9) — about nameplate ÷ 0.88;
+   - **discharging: ~6.9 kWh AC per 100 points per string** (n = 7 days)
+     — inverter losses plus ~45 W of standby per unit, 24 h/day, folded
+     in. The AC round-trip works out near 57 %.
+   Those are different numbers on the two sides of the inverter.
+   Practical guidance:
+   - Keep two coefficients — grid-kWh-in per point and delivered-kWh-out
+     per point — and derive both as rolling medians from the collector
+     once it records SoC at 00:00 / 07:00 / 23:50 next to AC-in and
+     AC-out. Expect them to drift with temperature.
+   - Put the reserve *under* the deliverable band
+     (`target = reserve + needed ÷ kWh_per_point`), not as a floor on the
+     total — the latter silently under-targets by the reserve.
+   - Log the 07:00 SoC beside each plan. "Did we reach the cap?" is the
+     single most diagnostic column in the feedback loop (refinement #7)
+     and is invisible if you only compare planned kWh against AC-in kWh.
+   - Collector corollary: if the grid meter sits at the incomer,
+     `grid_import + battery_out` is **not** home demand — the overnight
+     AC charge is inside `grid_import` and comes back out later as
+     `battery_out`. Subtract `battery_ac_in` (and add back any local
+     generation consumed rather than exported), or every demand figure
+     is inflated by the size of the nightly charge. On the reference site
+     that was 5–13 kWh a day, hidden for four months.
+
+All nine refinements land entirely in the optimiser's own code; the
 library just gets a `chChargeWatt` value to publish.

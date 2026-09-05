@@ -7,6 +7,37 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.12] — 2026-09-05
+
+Documentation-only patch — no library API or behaviour changes.
+
+### Added
+- `docs/DISCOVERY.md`: ninth pattern-level refinement — **`hightBattery`
+  is only a cap; `chChargeWatt × hours` decides where the pack ends up**.
+  - The reference optimiser sized its rate from a single
+    `BATTERY_CAPACITY_KWH` guess (12 kWh for a 21.6 kWh-nameplate pack).
+    Every plan for a month read "90 %, 500 W/unit"; ten days of HA
+    history showed the pack at 40–67 % at 07:00 and never at 90 %. The
+    rate, not the cap, was binding — and 2× too low.
+  - Measured on the reference site: 12.2 kWh AC per 100 SoC points per
+    string to *charge*, ~6.9 kWh AC per 100 points per string
+    *delivered* (≈57 % AC round-trip once inverter standby is counted).
+    Keep the two coefficients separate and derive both from the
+    collector as rolling medians.
+  - Put the planning reserve *under* the deliverable band rather than
+    as a floor on the total (the latter silently under-targets).
+  - Record the 07:00 SoC beside each plan — "did we reach the cap?" is
+    the most diagnostic column in the feedback loop (refinement #7).
+  - Collector corollary: with the meter at the incomer,
+    `grid_import + battery_out` double-counts the overnight AC charge;
+    subtract `battery_ac_in` (and add back consumed local generation).
+
+### Changed
+- `docs/DISCOVERY.md`: the reference optimiser now runs as an AppDaemon
+  app on the Home Assistant host rather than a macOS `launchd` job
+  (FileVault + no auto-login means user LaunchAgents never fire after a
+  reboot).
+
 ## [0.1.11] — 2026-07-23
 
 Documentation-only patch — no library API or behaviour changes.
@@ -254,7 +285,8 @@ Initial public release.
   `cmdSet:11, id:81` schedule message.
 - MIT licence.
 
-[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.12...HEAD
+[0.1.12]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.11...v0.1.12
 [0.1.11]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.10...v0.1.11
 [0.1.10]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/emdimon/ecoflow-shp-mqtt/compare/v0.1.8...v0.1.9
